@@ -1,0 +1,14 @@
+{% extends 'shared/base.html' %}
+{% block title %}Set up MFA{% endblock %}
+{% block crumb %}Account security{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">ACCOUNT SECURITY</div><h1>Set up multi-factor authentication</h1><p class="muted">Use an authenticator app to add a second check when you sign in.</p></div></div>
+<div class="panel mfa-panel">
+  <div class="mfa-steps">
+    <section><span class="mfa-step-number">1</span><div><h2>Open an authenticator app</h2><p>Use Google Authenticator, Microsoft Authenticator, or another TOTP-compatible app.</p></div></section>
+    <section><span class="mfa-step-number">2</span><div><h2>Scan this QR code</h2><p>In the app, choose the option to add an account by scanning a QR code.</p><img class="mfa-qr" src="data:image/png;base64,{{ qr_data }}" alt="Authenticator setup QR code"><details><summary>Can’t scan the QR code?</summary><p>Enter this setup key manually in the authenticator app:</p><code class="mfa-secret">{{ secret }}</code></details></div></section>
+    <section><span class="mfa-step-number">3</span><div><h2>Confirm the six-digit code</h2><p>Enter the current code shown for Asset Verify to finish setup.</p><form method="post" class="mfa-form"><label for="code">Authenticator code</label><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,8}" maxlength="8" placeholder="123456" required><button class="button primary" type="submit">Enable MFA</button></form></div></section>
+  </div>
+  <p class="mfa-warning"><i class="bi bi-shield-exclamation"></i> Keep access to your authenticator app. If you lose it, ask your project administrator for help restoring account access.</p>
+</div>
+{% endblock %}

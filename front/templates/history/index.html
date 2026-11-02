@@ -1,0 +1,35 @@
+{% extends 'shared/base.html' %}
+{% block title %}Verification history{% endblock %}
+{% block crumb %}Verification history{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">AUDIT TRAIL</div><h1>Verification history</h1><p class="muted">Review checks, narrow by date, and download a CSV report.</p></div><a class="button primary" href="{{ url_for('verification.scan') }}"><i class="bi bi-qr-code-scan"></i> Scan an asset</a></div>
+<section class="panel history-panel">
+  <form class="filter-bar history-filters" method="get" id="historyFilters">
+    <div class="search-box"><i class="bi bi-search"></i><input name="q" value="{{ q }}" placeholder="Search asset, verifier or remarks…" aria-label="Search history"></div>
+    <select name="result" aria-label="Filter by result"><option value="">All results</option>{% for item in results %}<option value="{{ item }}" {% if selected_result==item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
+    <select name="period" id="reportPeriod" aria-label="Date range"><option value="all" {% if period=='all' %}selected{% endif %}>All dates</option><option value="weekly" {% if period=='weekly' %}selected{% endif %}>This week</option><option value="monthly" {% if period=='monthly' %}selected{% endif %}>This month</option><option value="yearly" {% if period=='yearly' %}selected{% endif %}>This year</option><option value="custom" {% if period=='custom' %}selected{% endif %}>Choose dates</option></select>
+    <label class="history-date"><span>From</span><input type="date" name="start_date" value="{{ start_date }}" aria-label="From date"></label>
+    <label class="history-date"><span>To</span><input type="date" name="end_date" value="{{ end_date }}" aria-label="To date"></label>
+    <label class="history-page-size"><span>Rows</span><select name="per_page" aria-label="Rows per page">{% for size in page_sizes %}<option value="{{ size }}" {% if per_page==size %}selected{% endif %}>{{ size }}</option>{% endfor %}</select></label>
+    <button class="button secondary report-download" type="submit" name="export" value="csv"><i class="bi bi-download"></i> Download CSV</button>
+    {% if q or selected_result or period!='all' %}<a class="clear-link" href="{{ url_for('history.index') }}">Clear</a>{% endif %}
+  </form>
+  {% if records.items %}<div class="table-scroll"><table><thead><tr><th>ASSET</th><th>RESULT</th><th>REMARKS</th><th>VERIFIED BY</th><th>DATE &amp; TIME</th><th>EVIDENCE</th></tr></thead><tbody>{% for row in records.items %}<tr><td>{% if can_access('view_assets') %}<a class="asset-cell" href="{{ url_for('assets.detail', asset_id=row.asset.asset_id) }}"><span><b>{{ row.asset.name }}</b><small>{{ row.asset.asset_id }}</small></span></a>{% else %}<span><b>{{ row.asset.name }}</b><small>{{ row.asset.asset_id }}</small></span>{% endif %}</td><td><span class="status-pill {{ row.result|lower|replace(' ', '-') }}">{{ row.result }}</span></td><td class="remarks-cell">{{ row.remarks or '—' }}</td><td>{{ row.verified_by }}</td><td>{{ row.verified_at.strftime('%b %d, %Y · %H:%M') }}</td><td>{% if row.evidence_image %}<a class="evidence-link" href="{{ url_for('history.evidence', verification_id=row.id) }}" target="_blank" rel="noopener"><i class="bi bi-image"></i> View photo</a>{% else %}—{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+  <div class="pagination-row"><span>Showing {{ (records.page-1)*records.per_page+1 }}–{{ (records.page-1)*records.per_page+records.items|length }} of {{ records.total }} checks</span><div class="pagination">{% if records.has_prev %}<a href="{{ url_for('history.index', page=records.prev_num, q=q, result=selected_result, period=period, start_date=start_date, end_date=end_date, per_page=per_page) }}">‹</a>{% endif %}{% for n in records.iter_pages(left_edge=1,right_edge=1,left_current=1,right_current=1) %}{% if n %}<a class="{% if n==records.page %}current{% endif %}" href="{{ url_for('history.index', page=n, q=q, result=selected_result, period=period, start_date=start_date, end_date=end_date, per_page=per_page) }}">{{ n }}</a>{% else %}<span>…</span>{% endif %}{% endfor %}{% if records.has_next %}<a href="{{ url_for('history.index', page=records.next_num, q=q, result=selected_result, period=period, start_date=start_date, end_date=end_date, per_page=per_page) }}">›</a>{% endif %}</div></div>
+  {% else %}<div class="empty-state"><i class="bi bi-clock-history"></i><h4>No verification records found</h4><p>Adjust the search or date range, or scan an asset to add a check.</p></div>{% endif %}
+</section>
+{% endblock %}
+{% block scripts %}<script>
+(() => {
+  const form = document.getElementById('historyFilters');
+  const period = document.getElementById('reportPeriod');
+  if (!form) return;
+  let timer;
+  const submit = () => form.requestSubmit();
+  form.querySelectorAll('select[name="result"], select[name="per_page"]').forEach(el => el.addEventListener('change', submit));
+  period.addEventListener('change', submit);
+  form.querySelectorAll('input[type="date"]').forEach(el => el.addEventListener('change', () => { period.value = 'custom'; submit(); }));
+  const search = form.querySelector('input[name="q"]');
+  search.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(submit, 450); });
+})();
+</script>{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'shared/base.html' %}
+{% block title %}Overview{% endblock %}
+{% block crumb %}Overview{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><div class="eyebrow">ASSET VERIFY / WORKSPACE</div><h1>Inventory at a glance</h1><p class="muted">Current asset health and the latest work completed by your team.</p></div>
+  {% if can_access('scan_verify') %}<a class="button primary" href="{{ url_for('verification.scan') }}"><i class="bi bi-qr-code-scan"></i> Start verification</a>{% endif %}
+</div>
+
+{% if can_access('view_assets') %}<div class="stats-grid">
+  <a class="stat-card dashboard-stat" href="{{ url_for('assets.list_assets') }}"><div class="stat-icon blue"><i class="bi bi-box-seam"></i></div><span class="stat-label">Total assets</span><strong>{{ total }}</strong><small>Open the full register <i class="bi bi-arrow-up-right"></i></small></a>
+  <a class="stat-card dashboard-stat" href="{{ url_for('assets.list_assets', status='Active') }}"><div class="stat-icon green"><i class="bi bi-check2-circle"></i></div><span class="stat-label">Active</span><strong>{{ counts['Active'] }}</strong><small>Ready for use · View assets</small></a>
+  <a class="stat-card dashboard-stat" href="{{ url_for('assets.list_assets', status='Verified') }}"><div class="stat-icon teal"><i class="bi bi-patch-check"></i></div><span class="stat-label">Verified</span><strong>{{ counts['Verified'] }}</strong><small>Confirmed on site · View assets</small></a>
+  <div class="stat-card dashboard-stat attention-stat"><div class="stat-icon orange"><i class="bi bi-tools"></i></div><span class="stat-label">Needs attention</span><strong>{{ counts['Damaged'] + counts['Under Repair'] }}</strong><small><a href="{{ url_for('assets.list_assets', status='Damaged') }}">{{ counts['Damaged'] }} damaged</a> · <a href="{{ url_for('assets.list_assets', status='Under Repair') }}">{{ counts['Under Repair'] }} in repair</a></small></div>
+</div>{% endif %}
+
+{% if is_admin and pending_asset_requests %}<a class="panel pending-request-banner" href="{{ url_for('team.asset_requests') }}"><span class="pending-request-icon"><i class="bi bi-inbox"></i></span><span><b>{{ pending_asset_requests }} asset request{% if pending_asset_requests != 1 %}s{% endif %} need review</b><small>Technician-submitted assets are waiting for approval.</small></span><i class="bi bi-arrow-right"></i></a>{% endif %}
+
+<div class="dashboard-grid lower-grid work-grid">
+  {% if can_access('view_assets') %}<section class="panel">
+    <div class="panel-heading"><div><h3>Recently added</h3><p class="muted">Newest assets registered in the system</p></div><a class="text-link" href="{{ url_for('assets.list_assets') }}">All assets <i class="bi bi-arrow-up-right"></i></a></div>
+    {% if recent_assets %}<div class="table-scroll"><table><thead><tr><th>ASSET</th><th>DEPARTMENT</th><th>STATUS</th><th></th></tr></thead><tbody>{% for asset in recent_assets %}<tr><td><a class="asset-cell" href="{{ url_for('assets.detail', asset_id=asset.asset_id) }}"><span class="asset-mini-icon"><i class="bi bi-box"></i></span><span><b>{{ asset.name }}</b><small>{{ asset.asset_id }}</small></span></a></td><td>{{ asset.department }}</td><td><span class="status-pill {{ asset.status|lower|replace(' ', '-') }}">{{ asset.status }}</span></td><td><a class="row-arrow" href="{{ url_for('assets.detail', asset_id=asset.asset_id) }}"><i class="bi bi-arrow-up-right"></i></a></td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty-state"><i class="bi bi-box"></i><h4>No assets yet</h4><p>Add your first asset to get started.</p></div>{% endif %}
+  </section>{% endif %}
+  {% if can_access('view_history') %}<section class="panel">
+    <div class="panel-heading"><div><h3>Latest verifications</h3><p class="muted">Recent checks recorded by your team</p></div><a class="text-link" href="{{ url_for('history.index') }}">View history <i class="bi bi-arrow-up-right"></i></a></div>
+    {% if recent_verifications %}<div class="activity-list">{% for row in recent_verifications %}<div class="activity-item"><span class="activity-icon {% if row.result == 'Verified' %}ok{% elif row.result == 'Damaged' or row.result == 'Missing' %}warn{% else %}neutral{% endif %}"><i class="bi {% if row.result == 'Verified' %}bi-check2{% elif row.result == 'Damaged' or row.result == 'Missing' %}bi-exclamation{% else %}bi-arrow-repeat{% endif %}"></i></span><div class="activity-copy"><b>{{ row.asset.name }}</b><small>{{ row.verified_by }} · {{ row.verified_at.strftime('%b %d, %H:%M') }}</small></div><span class="status-pill {{ row.result|lower|replace(' ', '-') }}">{{ row.result }}</span></div>{% endfor %}</div>
+    {% else %}<div class="empty-state"><i class="bi bi-clock-history"></i><h4>No activity yet</h4><p>Completed verifications will appear here.</p></div>{% endif %}
+  </section>{% endif %}
+</div>
+
+{% if can_access('view_assets') %}<div class="dashboard-grid insight-grid">
+  <section class="panel chart-panel"><div class="panel-heading"><div><h3>Asset status</h3><p class="muted">Inventory count by current status</p></div><span class="subtle-tag">{{ total }} TOTAL</span></div><div class="chart-wrap"><canvas id="statusChart" aria-label="Asset status chart"></canvas></div><div class="chart-legend" id="statusLegend"></div></section>
+  <section class="panel chart-panel"><div class="panel-heading"><div><h3>Verification activity</h3><p class="muted">Checks recorded over the past week</p></div><span class="chart-indicator"><i></i> This week</span></div><div class="chart-wrap activity-wrap"><canvas id="activityChart" aria-label="Verification activity chart"></canvas></div></section>
+</div>{% endif %}
+{% if not can_access('view_assets') and not can_access('view_history') %}<section class="panel empty-state"><i class="bi bi-shield-lock"></i><h4>No portal permissions assigned</h4><p>Contact your administrator to request access to the project features.</p></section>{% endif %}
+{% endblock %}
+{% block scripts %}{% if can_access('view_assets') %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script><script>window.dashboardData={statusLabels:{{ status_labels|tojson }},statusValues:{{ status_values|tojson }},activityLabels:{{ activity_labels|tojson }},activityValues:{{ activity_values|tojson }}};</script><script src="{{ url_for('static', filename='js/dashboard/dashboard.js') }}"></script>{% endif %}{% endblock %}

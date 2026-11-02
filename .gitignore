@@ -1,0 +1,27 @@
+# Python and local environments
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+codex-pytest*/
+
+# Local secrets and databases
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Local QR exports and backups (QR images are stored in MySQL)
+qr_codes/*.png
+backups/
+
+# Editors and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

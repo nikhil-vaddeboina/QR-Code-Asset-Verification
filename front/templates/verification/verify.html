@@ -1,0 +1,31 @@
+{% extends 'shared/base.html' %}
+{% block title %}Verify {{ asset.asset_id }}{% endblock %}
+{% block crumb %}<a href="{{ url_for('assets.detail', asset_id=asset.asset_id) }}">{{ asset.asset_id }}</a> / Verify{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">PHYSICAL ASSET CHECK</div><h1>Verify asset</h1><p class="muted">Compare this record with the item in front of you.</p></div><a class="button ghost" href="{{ url_for('assets.detail', asset_id=asset.asset_id) }}"><i class="bi bi-arrow-left"></i> Asset details</a></div>
+<div class="verify-layout">
+  <section class="panel verify-record"><div class="panel-heading"><div><h3>Confirm asset identity</h3><p class="muted">Make sure the label and item match this record.</p></div><span class="status-pill {{ asset.status|lower|replace(' ', '-') }}">{{ asset.status }}</span></div><div class="verify-identity"><span class="verify-icon"><i class="bi bi-laptop"></i></span><div><h2>{{ asset.name }}</h2><p>{{ asset.asset_id }} <span>·</span> {{ asset.serial_number }}</p></div></div><div class="detail-fields compact-fields"><div><small>LOCATION</small><b>{{ asset.location }}</b></div><div><small>DEPARTMENT</small><b>{{ asset.department }}</b></div><div><small>ASSIGNED TO</small><b>{{ asset.assigned_to }}</b></div><div><small>CATEGORY</small><b>{{ asset.category }}</b></div></div></section>
+  <section class="panel verify-form-panel"><div class="form-section-title"><span class="section-number"><i class="bi bi-check2"></i></span><div><h3>Record your findings</h3><p>This updates the asset status and adds a history entry.</p></div></div>
+    <form method="post" enctype="multipart/form-data" data-loading="Saving verification…">
+      <div class="field"><label>Verification result <sup>*</sup></label><div class="result-options">{% for result in results %}<label class="result-option"><input type="radio" name="result" value="{{ result }}" required {% if selected_result==result %}checked{% endif %}><span><i class="bi {% if result=='Verified' %}bi-check-circle{% elif result=='Damaged' %}bi-exclamation-triangle{% elif result=='Missing' %}bi-question-circle{% elif result=='Under Repair' %}bi-tools{% else %}bi-arrow-left-right{% endif %}"></i>{{ result }}</span></label>{% endfor %}</div></div>
+      <div class="field remarks-field evidence-field" id="evidenceField" hidden><label for="evidence">Condition photo <sup>*</sup></label><input id="evidence" name="evidence" type="file" accept="image/jpeg,image/png,image/webp"><small class="field-help">Required for Damaged and Under Repair. JPEG, PNG, or WebP; up to 5 MB. The image is saved with this verification record.</small></div>
+      <div class="field remarks-field"><label for="remarks">Remarks <span class="optional">OPTIONAL</span></label><textarea id="remarks" name="remarks" rows="4" maxlength="500" placeholder="Add condition notes, discrepancies, or actions needed…">{{ request.form.get('remarks','') }}</textarea><small class="field-help">Up to 500 characters.</small></div>
+      <div class="form-actions"><a class="button ghost" href="{{ url_for('assets.detail', asset_id=asset.asset_id) }}">Cancel</a><button class="button primary" type="submit"><i class="bi bi-check-lg"></i> Save verification</button></div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+(() => {
+  const box = document.getElementById('evidenceField');
+  const input = document.getElementById('evidence');
+  const update = () => {
+    const result = document.querySelector('input[name="result"]:checked')?.value;
+    const required = result === 'Damaged' || result === 'Under Repair';
+    box.hidden = !required;
+    input.required = required;
+  };
+  document.querySelectorAll('input[name="result"]').forEach(radio => radio.addEventListener('change', update));
+  update();
+})();
+</script>{% endblock %}

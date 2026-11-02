@@ -1,0 +1,32 @@
+{% extends 'shared/base.html' %}
+{% block title %}Technicians{% endblock %}
+{% block crumb %}Team access{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">ADMINISTRATION / TEAM ACCESS</div><h1>Technician accounts</h1><p class="muted">Create technician accounts and choose what each person can do.</p></div></div>
+<div class="team-grid">
+  <section class="panel team-form-panel">
+    <div class="panel-heading"><div><h3>Add a technician</h3><p class="muted">Choose the portal features this account can use.</p></div></div>
+    <form method="post" class="team-form">
+      <div class="field"><label for="username">Username</label><input id="username" name="username" minlength="3" maxlength="80" pattern="[A-Za-z0-9._-]+" value="{{ request.form.get('username', '') }}" autocomplete="off" required><small>3–80 characters: letters, numbers, dots, underscores, or hyphens.</small></div>
+      <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" maxlength="254" value="{{ request.form.get('email', '') }}" autocomplete="email" required></div>
+      <div class="field"><label for="password">Initial password</label><input id="password" name="password" type="password" minlength="12" autocomplete="new-password" required><small>Use at least 12 characters and share it privately.</small></div>
+      <div class="permission-picker"><h4>Portal access</h4><p class="muted">Dashboard access is always available. Select any additional permissions. Features that need asset details will include asset viewing.</p>
+        {% for permission, label in permission_options.items() %}<label class="permission-check"><input type="checkbox" name="permissions" value="{{ permission }}" {% if permission in selected_permissions %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}
+      </div>
+      <button class="button primary" type="submit"><i class="bi bi-person-plus"></i> Create technician</button>
+    </form>
+  </section>
+  <section class="panel team-list-panel">
+    <div class="panel-heading"><div><h3>Technicians</h3><p class="muted">{{ technicians|length }} account{% if technicians|length != 1 %}s{% endif %}</p></div></div>
+    {% if technicians %}
+    <div class="table-scroll"><table><thead><tr><th>USERNAME</th><th>EMAIL</th><th>ROLE</th><th>ADDED</th><th>ACCESS</th><th class="right">ACTION</th></tr></thead><tbody>
+      {% for technician in technicians %}<tr><td><b>{{ technician.username }}</b></td><td>{{ technician.email or '—' }}</td><td><span class="role-pill">Technician</span></td><td>{{ technician.created_at.strftime('%b %d, %Y') if technician.created_at else '—' }}</td><td><details class="access-details"><summary>Manage access</summary><form method="post" action="{{ url_for('team.update_technician_permissions', user_id=technician.id) }}" class="access-edit-form">
+        {% for permission, label in permission_options.items() %}<label class="permission-check"><input type="checkbox" name="permissions" value="{{ permission }}" {% if permission in technician_permissions[technician.id] %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}
+        <button class="button secondary" type="submit">Save access</button>
+      </form></details></td><td class="right"><form method="post" action="{{ url_for('team.delete_technician', user_id=technician.id) }}" onsubmit="return confirm('Delete the technician account for {{ technician.username }}?')"><button class="action-icon team-delete" type="submit" aria-label="Delete {{ technician.username }}" title="Delete technician"><i class="bi bi-trash3"></i></button></form></td></tr>{% endfor %}
+    </tbody></table></div>
+    {% else %}<div class="empty-state compact"><i class="bi bi-people"></i><h4>No technician accounts yet</h4><p>Create one with the form on this page.</p></div>{% endif %}
+  </section>
+</div>
+<p class="team-permissions-note"><i class="bi bi-shield-lock"></i> Access is checked by the server. Technician management remains administrator-only. Existing accounts without saved choices keep the standard technician access until you update them here.</p>
+{% endblock %}
