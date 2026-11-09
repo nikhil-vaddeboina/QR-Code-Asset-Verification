@@ -1,159 +1,169 @@
-# QR Code Asset Verification — Asset Verify
+# QR Code Asset Verification System — Asset Verify
 
-Asset Verify is a Flask web application for tracking equipment, generating QR labels, and recording physical asset-verification checks. The code is organized by feature so that contributors can find and maintain each part of the application.
+## 1. Project Overview
 
-## Features
+Asset Verify is a web-based Asset Management and QR Code Verification System developed using Python Flask and MySQL.
 
-- Password-hashed sign-in, optional authenticator MFA, and administrator-managed technician permissions.
-- Add, view, search, and edit assets; technicians can submit new assets for administrator approval.
-- Generate, download, print, and scan QR labels. QR image bytes are stored in MySQL.
-- Require a condition photo when a verification marks an asset damaged or under repair.
-- Preview bulk CSV files before upload; filter asset and verification lists.
-- Filter verification history by preset or custom dates and download CSV reports.
-- Send SMTP email alerts for technician asset requests and review requests in the administrator portal.
-- View database-backed counts and dashboard charts. Asset deletion is not available in the portal.
+The application helps organizations maintain their physical asset records, generate unique QR codes for assets, and perform asset verification through QR code scanning.
 
-## Technologies
+It provides a centralized platform for managing assets, monitoring their condition, recording verification activities, and managing technician requests.
 
-Python 3, Flask, Flask-SQLAlchemy, Flask-Login, MySQL/PyMySQL (SQLite for local development and automated checks), Werkzeug, PyOTP, qrcode/Pillow, SMTP, Jinja templates, HTML, CSS, JavaScript, Chart.js, and html5-qrcode.
+## 2. Problem Statement
 
-## Project structure
+Traditional asset management processes often depend on spreadsheets and manual verification. These methods can lead to:
+- Difficulty tracking large numbers of assets.
+- Time-consuming physical verification.
+- Inaccurate or outdated asset records.
+- Difficulty identifying damaged or under-repair assets.
+- Limited visibility into verification history.
+
+The Asset Verify system aims to address these challenges through a centralized digital platform.
+
+## 3. Project Objectives
+
+- Maintain centralized asset information.
+- Generate unique QR codes for registered assets.
+- Simplify physical asset verification.
+- Track asset conditions and verification history.
+- Provide role-based access to application features.
+- Support bulk asset registration.
+- Improve asset tracking and reporting.
+
+## 4. Key Features
+
+### Dashboard
+Provides an overview of asset inventory, asset status, verification activity, and important statistics.
+
+### Asset Management
+Allows authorized users to add, view, search, and update asset information.
+
+### QR Code Generation
+Generates QR labels for registered assets. QR codes can be downloaded, printed, and scanned during physical verification.
+
+### Bulk Asset Upload
+Supports CSV-based bulk asset registration with a preview before uploading records.
+
+### Scan and Verify
+Allows users to scan asset QR codes and record physical verification results.
+
+### Verification History
+Maintains verification records and provides date-based filtering and CSV report downloads.
+
+### Technician Management
+Allows administrators to manage technician accounts and their permissions.
+
+### Asset Requests
+Allows technicians to submit asset requests for administrator review and approval.
+
+### Multi-Factor Authentication
+Supports optional authenticator-based MFA for an additional layer of account security.
+
+## 5. User Roles
+
+### Administrator
+- Manage asset records.
+- Manage technician accounts and permissions.
+- Review and approve technician asset requests.
+- Access dashboard statistics and reports.
+- Manage application-level security settings.
+
+### Technician
+- Access permitted asset management features.
+- Submit asset requests for approval.
+- Scan QR codes and perform asset verification.
+- Record asset condition and verification information.
+
+## 6. Application Workflow
+
+1. An authorized user registers an asset in the application.
+2. The system generates a unique QR code for the asset.
+3. The QR code is downloaded or printed and attached to the physical asset.
+4. A technician scans the QR code during physical verification.
+5. The technician records the asset's verification status and condition.
+6. Verification information is saved in the database.
+7. Administrators can review asset information, verification history, and reports.
+
+## 7. Technology Stack
+
+| Category | Technologies |
+|---|---|
+| Programming Language | Python 3 |
+| Backend Framework | Flask |
+| Database | MySQL |
+| Database Integration | Flask-SQLAlchemy, PyMySQL |
+| Authentication | Flask-Login, Werkzeug |
+| MFA | PyOTP, Cryptography |
+| QR Code | qrcode, Pillow |
+| Frontend | HTML, CSS, JavaScript |
+| Templates | Jinja |
+| Charts | Chart.js |
+| QR Scanning | html5-qrcode |
+| Testing | Pytest |
+| Containerization | Docker, Docker Compose |
+
+## 8. Database Overview
+
+The application uses a relational database to maintain asset information, QR code data, user information, and verification records.
+
+QR code image data is stored in the database, while the project also retains a folder for legacy QR image migration.
+
+## 9. Security Features
+
+- Password hashing for user authentication.
+- Optional authenticator-based multi-factor authentication.
+- Role-based access and permissions.
+- Administrator approval workflow for technician asset requests.
+- Environment-based application configuration.
+- Sensitive configuration and credentials are excluded from the public repository.
+
+## 10. Project Folder Structure
 
 ```text
 QR-Asset-Verification/
+│
 ├── app.py
-├── back/                         # Backend features, models, database and config
-├── front/                        # Jinja templates, CSS and JavaScript
-├── docs/                         # Setup, architecture and user guide
-├── CODE_LINKS/                   # Quick code map for a project walkthrough
-├── tests/                        # Automated checks
-├── qr_codes/                     # Legacy QR files used for migration
-├── backups/                      # Local backups (not committed)
+├── back/
+│   └── Backend features, models, database and configuration
+│
+├── front/
+│   └── Frontend templates, CSS and JavaScript
+│
+├── docs/
+│   └── Project documentation and user guide
+│
+├── CODE_LINKS/
+│   └── Quick code reference
+│
+├── tests/
+│   └── Automated tests
+│
+├── qr_codes/
+│   └── Legacy QR images
+│
+├── backups/
+│   └── Local backups (not committed)
+│
 ├── requirements.txt
-├── .env.example                  # Safe configuration template
+├── .env.example
 ├── .gitignore
 ├── Dockerfile
-├── docker-compose.yml
-└── START_ASSETVERIFY.bat         # Windows launcher for local setup
+└── docker-compose.yml
 ```
 
-For a code tour, open [CODE_LINKS/README.md](CODE_LINKS/README.md). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the architecture diagram and [docs/USER_GUIDE.md](docs/USER_GUIDE.md) for application usage.
+## 11. Project Documentation
 
-## Choose how to run the project
+For additional technical information, refer to:
 
-There are two supported setup approaches. **Choose one**: Docker (recommended for most downloaders) or manual Python + MySQL setup. You do not need to use both.
+- `docs/ARCHITECTURE.md` — Application architecture.
+- `docs/USER_GUIDE.md` — Application usage guide.
+- `CODE_LINKS/README.md` — Quick code reference.
 
-### Option A — Docker (recommended)
+---
 
-Docker runs the Flask application and MySQL database in containers, so you do not need to install Python or MySQL separately on your computer.
+**Project:** QR Code Asset Verification System
 
-**Requirements:** Git and Docker Desktop. Start Docker Desktop before continuing.
+**Application Name:** Asset Verify
 
-1. Clone the repository and open its folder:
+**Backend:** Python Flask
 
-   ```powershell
-   git clone https://github.com/nikhil-vaddeboina/QR-Code-Asset-Verification.git
-   cd QR-Code-Asset-Verification
-   ```
-
-2. Create your own local environment file:
-
-   ```powershell
-   Copy-Item .env.example .env
-   ```
-
-3. Open `.env` and replace the placeholder values. At minimum, set unique values for `SECRET_KEY`, `MFA_ENCRYPTION_KEY`, `ADMIN_PASSWORD`, `MYSQL_PASSWORD`, and `MYSQL_ROOT_PASSWORD`. Use a valid Fernet key for `MFA_ENCRYPTION_KEY`. Keep the MySQL passwords alphanumeric to avoid URL parsing issues. Do not commit or share `.env`.
-
-4. Build and start the application:
-
-   ```powershell
-   docker compose up --build
-   ```
-
-5. When the containers finish starting, open <http://localhost:5013> in your browser. The container startup command initializes the database and creates the initial administrator account.
-
-6. To stop the running containers, press `Ctrl+C`. You can also run `docker compose down` in another terminal. Database data is stored in the Docker volume named `mysql_data` and is retained when containers are stopped. **Only** run `docker compose down -v` if you intentionally want to delete that database volume and its data.
-
-Optional: configure the `SMTP_*` and `ASSET_APPROVAL_EMAIL` values in `.env` if you want email notifications. For Gmail, use an App Password rather than your normal account password. Email notifications will not be sent if SMTP settings are blank or invalid; requests can still be reviewed in the administrator portal.
-
-### Option B — Manual setup with Python + MySQL
-
-Choose this option if you prefer to install and manage Python and MySQL directly on your computer.
-
-**Requirements:** Python 3.10 or newer and MySQL 8. Install and start MySQL before continuing.
-
-1. Clone the repository and open its folder:
-
-   ```powershell
-   git clone https://github.com/nikhil-vaddeboina/QR-Code-Asset-Verification.git
-   cd QR-Code-Asset-Verification
-   ```
-
-2. Create and activate a virtual environment, then install dependencies:
-
-   ```powershell
-   py -3 -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   pip install -r requirements.txt
-   ```
-
-3. Create your local environment file:
-
-   ```powershell
-   Copy-Item .env.example .env
-   ```
-
-4. Open `.env` and configure your local MySQL connection in `DATABASE_URL`. The database and MySQL user specified in the URL must already exist and have the required permissions. Set your own `SECRET_KEY`, valid `MFA_ENCRYPTION_KEY`, and strong `ADMIN_PASSWORD`. Do not commit or share `.env`.
-
-   Example format for the database URL (replace the example values with your own):
-
-   ```text
-   DATABASE_URL=mysql+pymysql://USERNAME:PASSWORD@127.0.0.1:3306/DATABASE_NAME?charset=utf8mb4
-   ```
-
-5. Initialize the database and initial administrator account:
-
-   ```powershell
-   flask --app app init-db
-   ```
-
-6. Start the application:
-
-   ```powershell
-   python app.py
-   ```
-
-   Alternatively, on Windows, double-click `START_ASSETVERIFY.bat` after configuring `.env`.
-
-7. Open <http://127.0.0.1:5013> in Chrome or Edge.
-
-Optional: configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, and `ASSET_APPROVAL_EMAIL` in `.env` to enable email notifications. For Gmail, use an App Password. If SMTP settings are blank or invalid, requests can still be reviewed in the administrator portal, but email cannot be sent.
-
-## Database commands
-
-Run these commands from the project folder with the virtual environment activated and the correct `.env` configuration loaded:
-
-- `flask --app app init-db` creates the tables and initial administrator account.
-- `flask --app app seed-demo` adds demo assets, checks, and QR images.
-- `flask --app app setup-demo` initializes the database and adds demo records.
-- `flask --app app migrate-qrs-to-db` imports legacy QR PNGs and generates missing labels.
-- `flask --app app generate-qrs` creates QR images for assets that do not yet have one in MySQL.
-
-The QR images are stored in the `asset_qr_codes.qr_image` database column. The `qr_codes/` folder is retained for importing older local QR images.
-
-## Tests
-
-The pytest checks use a temporary SQLite database. Run:
-
-```powershell
-pytest
-```
-
-The tests are designed not to modify the configured MySQL database.
-
-## Security and data notes
-
-- Never commit `.env`, database passwords, secret keys, local database files, personal data, or database backups.
-- `.env.example` is a template only. Each person should create their own `.env` and use their own credentials.
-- Demo data is separate from your private/local database records. Do not use real asset or employee information in a public repository.
-- Docker's `mysql_data` volume stores data on the computer running Docker; it is not uploaded to GitHub.
+**Database:** MySQL
